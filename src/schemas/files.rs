@@ -1,0 +1,19 @@
+use std::path::PathBuf;
+
+pub struct SearchResult {
+    pub path: PathBuf,
+    pub line_n: u64,
+    pub char_n: u64,
+    pub content: String,
+}
+
+impl SearchResult {
+    pub fn new(path: PathBuf, line_n: u64, char_n: u64, content: String) -> Self {
+        SearchResult {
+            path,
+            line_n,
+            char_n,
+            content,
+        }
+    }
+}

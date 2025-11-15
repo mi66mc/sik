@@ -7,7 +7,6 @@ fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
     let path = args.path;
-
     let entries = fs::read_dir(path).expect("[SEEK ERROR]: Error while trying to read dir.");
 
     for entry in entries {
