@@ -1,5 +1,5 @@
 use regex::Regex;
-use seek::{
+use sik::{
     cli::args::Args, errors::custom_errors::AppError, output::printer::print_error, walker::walk,
     worker::process_file,
 };

@@ -42,7 +42,7 @@ To build and run `seek`, you need to have the Rust programming language toolchai
 The basic syntax for `seek` is:
 
 ```
-seek [OPTIONS] <PATTERN> [PATH]
+sik [OPTIONS] <PATTERN> [PATH]
 ```
 
 ### Arguments
@@ -59,17 +59,17 @@ seek [OPTIONS] <PATTERN> [PATH]
 
 -   **Search for a pattern in the current directory:**
     ```bash
-    seek "my_pattern"
+    sik "my_pattern"
     ```
 
 -   **Search for a pattern in a specific directory:**
     ```bash
-    seek "my pattern with spaces" "/path/to/your/directory"
+    sik "my pattern with spaces" "/path/to/your/directory"
     ```
 
 -   **Search using a specific number of threads:**
     ```bash
-    seek --threads 8 "error" "./logs"
+    sik --threads 8 "error" "./logs"
     ```
 
 ## License

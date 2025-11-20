@@ -2,7 +2,6 @@ name: Publish to crates.io
 
 on:
   push:
-    branches: ["main"]
     tags:
       - "v*.*.*"
 
@@ -14,6 +13,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tag is on main
+        run: |
+          TAG_COMMIT=$(git rev-parse HEAD)
+          MAIN_COMMIT=$(git rev-parse origin/main)
+
+          if [ "$TAG_COMMIT" != "$MAIN_COMMIT" ]; then
+            echo "Tag is not in main branch."
+            exit 1
+          fi
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
