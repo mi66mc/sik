@@ -1,6 +1,9 @@
+use crate::output::printer::{print_error, print_info};
 use std::{env, num::NonZeroUsize, process::exit};
 
 const DEFAULT_PATH: &str = ".";
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Args {
     pub pattern: String,
@@ -16,9 +19,11 @@ fn usage() {
     println!("  [PATH]                Path to be searched with the pattern");
     println!("\nOptions:");
     println!(
-        "  -t, --threads <NUM>   Number of threads to be used, default is number of logical processors * 2"
+        "  -t, --threads <NUM>   Number of threads to be used, default is number of logical processors * 2",
     );
-    println!("  -h, --help            Prints this message");
+    println!("  -h, --help            Prints this message\n");
+
+    print_info(&format!("Version: {}", VERSION));
 }
 
 impl Args {
@@ -42,7 +47,7 @@ impl Args {
                     let num_str = match args_iter.next() {
                         Some(val) => val,
                         None => {
-                            eprintln!("[SEEK ERROR]: --threads is expected to receive a number");
+                            print_error("--threads is expected to receive a number");
                             usage();
                             exit(1);
                         }
@@ -50,10 +55,10 @@ impl Args {
                     threads = match num_str.parse() {
                         Ok(num) if num > 0 => num,
                         _ => {
-                            eprintln!(
-                                "[SEEK ERROR]: Invalid number of threads: '{}'. Must be a positive number.",
+                            print_error(&format!(
+                                "Invalid number of threads: '{}'. Must be a positive number.",
                                 num_str
-                            );
+                            ));
                             usage();
                             exit(1);
                         }
@@ -62,7 +67,7 @@ impl Args {
 
                 // unknown opt
                 s if s.starts_with('-') => {
-                    eprintln!("[SEEK ERROR]: Unknown option: {}", s);
+                    print_error(&format!("Unknown option: {}", s));
                     usage();
                 }
 
@@ -72,7 +77,7 @@ impl Args {
                     } else if path.is_empty() {
                         path = arg;
                     } else {
-                        eprintln!("[SEEK ERROR]: Unexpected argument: {}", arg);
+                        print_error(&format!("Unexpected argument: {}", arg));
                         usage();
                         exit(1);
                     }
@@ -81,7 +86,7 @@ impl Args {
         }
 
         if pattern.is_empty() {
-            eprintln!("[SEEK ERROR]: Required argument <PATTERN> is missing.");
+            print_error("Required argument <PATTERN> is missing.");
             usage();
             exit(1);
         }
