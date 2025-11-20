@@ -1,5 +1,10 @@
 use std::path::PathBuf;
 
+pub struct FileResult {
+    pub path: PathBuf,
+    pub results: Vec<SearchResult>,
+}
+
 pub struct SearchResult {
     pub path: PathBuf,
     pub line_n: u64,
