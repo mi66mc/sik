@@ -9,8 +9,6 @@ pub fn walk(path: &str, tx: &mpsc::Sender<PathBuf>) -> Result<(), AppError> {
 
         if e_path.is_dir() {
             walk(e_path.to_str().ok_or(AppError::InvalidPath)?, tx)?;
-        } else if false {
-            // ã
         } else {
             tx.send(e_path)?;
         }
