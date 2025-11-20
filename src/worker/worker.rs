@@ -1,3 +1,5 @@
+use regex::Regex;
+
 use crate::{errors::custom_errors::AppError, output::printer::print_info};
 use std::{
     fs::File,
@@ -6,7 +8,7 @@ use std::{
     sync::{Arc, Mutex, mpsc::Receiver},
 };
 
-pub fn process_file(rx: Arc<Mutex<Receiver<PathBuf>>>, pattern: &str) -> Result<(), AppError> {
+pub fn process_file(rx: Arc<Mutex<Receiver<PathBuf>>>, pattern: Regex) -> Result<(), AppError> {
     loop {
         let msg = {
             let rx = rx.lock()?;
@@ -22,7 +24,7 @@ pub fn process_file(rx: Arc<Mutex<Receiver<PathBuf>>>, pattern: &str) -> Result<
 
                 for line in buff.lines() {
                     let line = line?;
-                    if line.contains(pattern) {
+                    if pattern.is_match(&line) {
                         print_info(&format!("CONTENT:\n{}", line));
                     }
                 }

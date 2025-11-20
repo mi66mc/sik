@@ -1,3 +1,4 @@
+use regex::Regex;
 use seek::{
     cli::args::Args, errors::custom_errors::AppError, output::printer::print_error, walker::walk,
     worker::process_file,
@@ -31,9 +32,9 @@ fn run() -> Result<(), AppError> {
 
     for _ in 0..args.threads {
         let rx = Arc::clone(&rx);
-        let p = args.pattern.clone();
+        let p = Regex::new(&args.pattern)?;
         workers.push(thread::spawn(move || -> Result<(), AppError> {
-            process_file(rx, &p)
+            process_file(rx, p)
         }));
     }
 
