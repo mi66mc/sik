@@ -2,6 +2,14 @@
 name = "seek"
 version = "0.1.0"
 edition = "2024"
+description = "A fast and concurrent command-line tool for searching patterns in files."
+license = "AGPL-3.0-or-later"
+license-file = "LICENSE"
+repository = "https://github.com/mi66mc/seek"
+homepage = "https://github.com/mi66mc/seek"
+readme = "README.md"
+keywords = ["cli", "search", "grep", "multithreaded", "rust"]
+categories = ["command-line-utilities", "development-tools", "text-processing"]
 
 [dependencies]
 regex = "1.12.2"
