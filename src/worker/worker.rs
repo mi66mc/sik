@@ -6,13 +6,23 @@ use crate::{
 };
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read},
     path::PathBuf,
     sync::{
         Arc, Mutex,
         mpsc::{Receiver, Sender},
     },
 };
+
+const MAX_FILE_SIZE: u64 = 2 * 1024 * 1024;
+
+fn is_binary(file: &mut File) -> bool {
+    let mut buf = [0u8; 8192]; // 8kb
+    if let Ok(n) = file.read(&mut buf) {
+        return buf[..n].contains(&0);
+    }
+    false
+}
 
 pub fn process_file(
     rx: Arc<Mutex<Receiver<PathBuf>>>,
@@ -25,33 +35,47 @@ pub fn process_file(
             rx.recv()
         };
 
-        match msg {
-            Ok(path) => {
-                let mut results: Vec<SearchResult> = Vec::new();
+        if let Err(_) = msg {
+            break;
+        }
 
-                let file = File::open(&path)?;
-                let buff = BufReader::new(file);
-                let mut l: usize = 0;
+        let path = msg.unwrap();
 
-                for line in buff.lines() {
-                    l += 1;
-                    let line = line?;
-                    for m in pattern.find_iter(&line) {
-                        results.push(SearchResult::new(
-                            l,
-                            m.start(),
-                            m.end(),
-                            m.as_str().to_string(),
-                            line.clone(),
-                        ));
-                    }
-                }
+        let mut results: Vec<SearchResult> = Vec::new();
 
-                if !results.is_empty() {
-                    tx.send(FileResult::new(path, results))?
-                }
+        let mut file = File::open(&path)?;
+        if file.metadata()?.len() > MAX_FILE_SIZE || is_binary(&mut file) {
+            continue;
+        }
+        let mut buff = BufReader::new(file);
+        let mut line_no = 0;
+        let mut bytes = Vec::new();
+
+        loop {
+            bytes.clear();
+
+            let n = buff.read_until(b'\n', &mut bytes)?;
+            if n == 0 {
+                break;
             }
-            Err(_) => break,
+
+            line_no += 1;
+
+            let text = String::from_utf8_lossy(&bytes);
+
+            for m in pattern.find_iter(&text) {
+                results.push(SearchResult::new(
+                    line_no,
+                    m.start(),
+                    m.end(),
+                    m.as_str().to_string(),
+                    text.to_string(),
+                ));
+            }
+        }
+
+        if !results.is_empty() {
+            tx.send(FileResult::new(path, results))?
         }
     }
     Ok(())
