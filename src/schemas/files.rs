@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+pub type MatchRange = (usize, usize);
+
 #[derive(Debug)]
 pub struct FileResult {
     pub path: PathBuf,
@@ -9,26 +11,22 @@ pub struct FileResult {
 #[derive(Debug)]
 pub struct SearchResult {
     pub line: usize,
-    pub start: usize,
-    pub end: usize,
-    pub content: String,
     pub line_content: String,
+    pub matches: Vec<MatchResult>,
+}
+
+#[derive(Debug)]
+pub struct MatchResult {
+    pub match_range: MatchRange,
+    pub content: String,
 }
 
 impl SearchResult {
-    pub fn new(
-        line: usize,
-        start: usize,
-        end: usize,
-        content: String,
-        line_content: String,
-    ) -> Self {
+    pub fn new(line: usize, line_content: String, matches: Vec<MatchResult>) -> Self {
         SearchResult {
             line,
-            start,
-            end,
-            content,
             line_content,
+            matches,
         }
     }
 }
@@ -36,5 +34,14 @@ impl SearchResult {
 impl FileResult {
     pub fn new(path: PathBuf, results: Vec<SearchResult>) -> Self {
         FileResult { path, results }
+    }
+}
+
+impl MatchResult {
+    pub fn new(start: usize, end: usize, content: String) -> Self {
+        MatchResult {
+            match_range: (start, end),
+            content,
+        }
     }
 }

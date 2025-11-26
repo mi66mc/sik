@@ -2,7 +2,7 @@ use regex::Regex;
 
 use crate::{
     errors::custom_errors::AppError,
-    schemas::files::{FileResult, SearchResult},
+    schemas::files::{FileResult, MatchResult, SearchResult},
 };
 use std::{
     fs::File,
@@ -43,10 +43,15 @@ pub fn process_file(
 
         let mut results: Vec<SearchResult> = Vec::new();
 
-        let mut file = File::open(&path)?;
-        if file.metadata()?.len() > MAX_FILE_SIZE || is_binary(&mut file) {
+        let file = File::open(&path)?;
+
+        if (file.metadata()?.len() > MAX_FILE_SIZE) || {
+            let mut temp = File::open(&path)?;
+            is_binary(&mut temp)
+        } {
             continue;
         }
+
         let mut buff = BufReader::new(file);
         let mut line_no = 0;
         let mut bytes = Vec::new();
@@ -62,15 +67,14 @@ pub fn process_file(
             line_no += 1;
 
             let text = String::from_utf8_lossy(&bytes);
+            let mut matches: Vec<MatchResult> = Vec::new();
 
             for m in pattern.find_iter(&text) {
-                results.push(SearchResult::new(
-                    line_no,
-                    m.start(),
-                    m.end(),
-                    m.as_str().to_string(),
-                    text.to_string(),
-                ));
+                matches.push(MatchResult::new(m.start(), m.end(), m.as_str().to_string()));
+            }
+
+            if !matches.is_empty() {
+                results.push(SearchResult::new(line_no, text.to_string(), matches));
             }
         }
 
