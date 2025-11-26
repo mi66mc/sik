@@ -69,6 +69,7 @@ impl Args {
                 s if s.starts_with('-') => {
                     print_error(&format!("Unknown option: {}", s));
                     usage();
+                    exit(1);
                 }
 
                 _ => {
