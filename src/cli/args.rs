@@ -26,6 +26,8 @@ fn usage() {
     print_info(&format!("Version: {}", VERSION));
 }
 
+// TODO: definitly needing a rewrite, it needs to be flexible (almost considering to create
+// another project just to handle cli args)
 impl Args {
     pub fn parse() -> Self {
         let mut args_iter = env::args().skip(1);

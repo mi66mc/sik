@@ -27,7 +27,8 @@ fn is_binary(file: &mut File) -> bool {
 pub fn process_file(
     rx: Arc<Mutex<Receiver<PathBuf>>>,
     pattern: Regex,
-    tx: Sender<FileResult>,
+    result_tx: Sender<FileResult>,
+    prog_tx: Sender<()>,
 ) -> Result<(), AppError> {
     loop {
         let msg = {
@@ -44,6 +45,10 @@ pub fn process_file(
         let mut results: Vec<SearchResult> = Vec::new();
 
         let file = File::open(&path)?;
+
+        // FIXME: this is retarded, need to think in better handler for progress without repeating
+        // :(
+        prog_tx.send(())?;
 
         if (file.metadata()?.len() > MAX_FILE_SIZE) || {
             let mut temp = File::open(&path)?;
@@ -79,7 +84,7 @@ pub fn process_file(
         }
 
         if !results.is_empty() {
-            tx.send(FileResult::new(path, results))?
+            result_tx.send(FileResult::new(path, results))?
         }
     }
     Ok(())

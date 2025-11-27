@@ -1,7 +1,10 @@
 use crate::{
     colors::painter::{paint_blue, paint_green, paint_red, paint_yellow},
+    errors::custom_errors::AppError,
     schemas::files::{FileResult, MatchRange},
 };
+
+use std::io::{self, Write};
 
 pub fn print_info(message: &str) {
     println!("{} {}", paint_blue("[SIK INFO]:"), message);
@@ -32,6 +35,35 @@ pub fn print_result(result: FileResult) {
     println!();
 }
 
+const SYMBOLS: [&str; 8] = ["⠁", "⠂", "⠄", "⡀", "⢀", "⠠", "⠐", "⠈"];
+
+pub fn progress_bar(current: usize, total: usize) -> Result<(), AppError> {
+    let width = 40;
+
+    let ratio = current as f32 / total as f32;
+    let filled = (ratio * width as f32) as usize;
+
+    // number of steps the ball will do until 100% :)
+    let total_steps = 10 * SYMBOLS.len();
+
+    let step = (ratio * total_steps as f32) as usize;
+
+    let symbol = SYMBOLS[step % SYMBOLS.len()];
+
+    print!(
+        "\r{} [{}{}] {}/{}",
+        symbol,
+        "=".repeat(filled),
+        " ".repeat(width - filled),
+        current,
+        total
+    );
+
+    io::stdout().flush()?;
+
+    Ok(())
+}
+
 pub fn highlight(s: &str, matches: &Vec<MatchRange>) -> String {
     let mut matches = matches.to_owned();
     matches.sort_by(|a, b| a.0.cmp(&b.0));
@@ -57,7 +89,7 @@ pub fn highlight(s: &str, matches: &Vec<MatchRange>) -> String {
     out
 }
 
-fn visible_len(s: &str) -> usize {
+pub fn visible_len(s: &str) -> usize {
     let mut count = 0;
     let mut in_esc = false;
 
@@ -80,7 +112,7 @@ fn visible_len(s: &str) -> usize {
     count
 }
 
-fn center_ansi(text: &str, width: usize) -> String {
+pub fn center_ansi(text: &str, width: usize) -> String {
     let vis = visible_len(text);
     if vis >= width {
         return text.to_string();
