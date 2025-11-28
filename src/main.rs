@@ -2,7 +2,7 @@ use regex::Regex;
 use sik::{
     cli::args::Args,
     errors::custom_errors::AppError,
-    output::printer::{print_error, print_result, progress_bar},
+    output::printer::{DisplayMode, StyledOutput, print_error, progress_bar},
     schemas::files::FileResult,
     walker::walk,
     worker::process_file,
@@ -80,7 +80,7 @@ fn run() -> Result<(), AppError> {
     }
 
     for r in result_rx {
-        print_result(r);
+        println!("{}", StyledOutput::new(&r, DisplayMode::Primary));
     }
 
     Ok(())

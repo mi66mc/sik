@@ -1,10 +1,131 @@
 use crate::{
-    colors::painter::{paint_blue, paint_green, paint_red, paint_yellow},
+    colors::painter::{paint_blue, paint_green, paint_magenta, paint_red, paint_yellow},
     errors::custom_errors::AppError,
     schemas::files::{FileResult, MatchRange},
 };
 
-use std::io::{self, Write};
+use std::{
+    fmt::{self, Display},
+    io::{self, Write},
+};
+
+// ----- GENERICS
+
+pub enum DisplayMode {
+    Primary,
+    Secondary,
+    Enabled,
+    Disabled,
+}
+
+/// Wrapper that prints a value of type `T` using a specific [`DisplayMode`].
+///
+/// This type does **not** define how `T` is printed by default. Instead, the caller must
+/// implement [`Display`] for `StyledOutput<'a, T>` manually for each supported type.
+///
+/// This allows you to define multiple visual styles (e.g. *primary*, *secondary*) for the
+/// same underlying data type.
+///
+/// # Type Parameters
+/// - `'a`: Lifetime of the borrowed value.
+/// - `T`: The wrapped type.
+///
+/// # Example
+///
+/// ```rust
+/// // Assume `FileResult` implements:
+/// // impl Display for StyledOutput<'_, FileResult> { ... }
+///
+/// let file: FileResult = ...;
+/// let out = StyledOutput::new(&file, DisplayMode::Primary);
+/// println!("{out}");
+/// ```
+pub struct StyledOutput<'a, T> {
+    value: &'a T,
+    mode: DisplayMode,
+}
+
+impl<'a, T> StyledOutput<'a, T>
+where
+    Self: Display,
+{
+    /// Creates a new styled wrapper for a given value and display mode.
+    ///
+    /// This constructor is only available if [`Display`] is implemented for
+    /// `StyledOutput<'a, T>`. This prevents constructing wrappers that cannot
+    /// be formatted.
+    pub fn new(value: &'a T, mode: DisplayMode) -> Self {
+        StyledOutput { value, mode }
+    }
+}
+
+// ----- FileResult
+
+impl Display for StyledOutput<'_, FileResult> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.mode {
+            DisplayMode::Secondary => {
+                write!(
+                    f,
+                    "{}\n",
+                    paint_blue(&self.value.path.to_str().ok_or(fmt::Error)?)
+                )?;
+
+                for r in &self.value.results {
+                    let line = paint_green(&r.line.to_string());
+                    print!(
+                        "[{}] {}: {}",
+                        center_ansi(&line, 4),
+                        paint_magenta(&format!(
+                            "@({})",
+                            &r.matches
+                                .iter()
+                                .map(|m| -> String {
+                                    format!("{}-{}", m.match_range.0, m.match_range.1)
+                                })
+                                .collect::<Vec<String>>()
+                                .join(", ")
+                        )),
+                        highlight(
+                            &r.line_content,
+                            &r.matches
+                                .iter()
+                                .map(|m| -> MatchRange { m.match_range })
+                                .collect::<Vec<MatchRange>>(),
+                        )
+                    );
+                }
+            }
+
+            // primary and fallback, this output can just be primary or secondary yet
+            _ => {
+                write!(
+                    f,
+                    "{}\n",
+                    paint_blue(&self.value.path.to_str().ok_or(fmt::Error)?)
+                )?;
+
+                for r in &self.value.results {
+                    let line = paint_green(&r.line.to_string());
+                    print!(
+                        "[{}]: {}",
+                        center_ansi(&line, 4),
+                        highlight(
+                            &r.line_content,
+                            &r.matches
+                                .iter()
+                                .map(|m| -> MatchRange { m.match_range })
+                                .collect::<Vec<MatchRange>>(),
+                        )
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+// ----------------------------------------------
 
 pub fn print_info(message: &str) {
     println!("{} {}", paint_blue("[SIK INFO]:"), message);
@@ -14,26 +135,26 @@ pub fn print_error(message: &str) {
     eprintln!("{} {}", paint_red("[SIK ERROR]:"), message);
 }
 
-pub fn print_result(result: FileResult) {
-    println!("{}", paint_blue(result.path.to_str().unwrap()));
-
-    for r in result.results {
-        let line = paint_green(&r.line.to_string());
-        print!(
-            "[{}]: {}",
-            center_ansi(&line, 4),
-            highlight(
-                &r.line_content,
-                &r.matches
-                    .iter()
-                    .map(|m| -> MatchRange { m.match_range })
-                    .collect::<Vec<MatchRange>>(),
-            )
-        );
-    }
-
-    println!();
-}
+//pub fn print_result(result: FileResult) {
+//    println!("{}", paint_blue(result.path.to_str().unwrap()));
+//
+//    for r in result.results {
+//        let line = paint_green(&r.line.to_string());
+//        print!(
+//            "[{}]: {}",
+//            center_ansi(&line, 4),
+//            highlight(
+//                &r.line_content,
+//                &r.matches
+//                    .iter()
+//                    .map(|m| -> MatchRange { m.match_range })
+//                    .collect::<Vec<MatchRange>>(),
+//            )
+//        );
+//    }
+//
+//    println!();
+//}
 
 const SYMBOLS: [&str; 8] = ["⠁", "⠂", "⠄", "⡀", "⢀", "⠠", "⠐", "⠈"];
 
