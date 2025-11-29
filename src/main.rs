@@ -31,6 +31,8 @@ fn run() -> Result<(), AppError> {
     let (count_tx, count_rx) = mpsc::channel::<()>();
     let (prog_tx, prog_rx) = mpsc::channel::<()>();
 
+    let type_style = args.type_style;
+
     let mut workers = Vec::new();
 
     let walker = thread::spawn(move || -> Result<(), AppError> {
@@ -80,7 +82,11 @@ fn run() -> Result<(), AppError> {
     }
 
     for r in result_rx {
-        println!("{}", StyledOutput::new(&r, DisplayMode::Primary));
+        match type_style {
+            DisplayMode::Primary => println!("{}", StyledOutput::new(&r, DisplayMode::Primary)),
+            DisplayMode::Secondary => println!("{}", StyledOutput::new(&r, DisplayMode::Secondary)),
+            DisplayMode::Tertiary => println!("{}", StyledOutput::new(&r, DisplayMode::Tertiary)),
+        }
     }
 
     Ok(())
