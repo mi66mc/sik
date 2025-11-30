@@ -47,13 +47,12 @@ sik [OPTIONS] <PATTERN> [PATH]
 
 ### Arguments
 
--	`<Type>`: Shows the display style on the screen. There are 3 types (`primary`, `secondary`, and `tertiary`).
 -   `<PATTERN>`: The pattern to search for within the files, Regex is used to build the pattern. If the pattern contains spaces, it should be enclosed in quotes.
 -   `[PATH]`: The directory to search in. If not provided, it defaults to the current directory (`.`).
 
 ### Options
 
--	`--secondary`, `--tertiary`: Arguments you provide to choose what type of style you want to be displayed.
+-	`--primary`, `--secondary`, `--tertiary`: Arguments you provide to choose what type of style you want to be displayed.
 -   `-t, --threads <NUM>`: Sets the number of threads to use for searching. By default, it uses twice the number of available logical processors.
 -   `-h, --help`: Prints the help message and exits.
 

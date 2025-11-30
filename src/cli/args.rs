@@ -1,8 +1,4 @@
-use crate::output::printer::{
-    print_error,
-    print_info,
-    DisplayMode,
-};
+use crate::output::printer::{DisplayMode, print_error, print_info};
 use std::{env, num::NonZeroUsize, process::exit};
 
 const DEFAULT_PATH: &str = ".";
@@ -20,13 +16,10 @@ fn usage() {
     let program = env::args().next().unwrap_or_else(|| "sik".to_string());
     println!("Usage: {} [OPTS] <PATTERN> [PATH]", program);
     println!("\nArgs:");
-    println!("  <Type>:               Screen style type");
     println!("  <PATTERN>             Pattern to be searched for");
     println!("  [PATH]                Path to be searched with the pattern");
     println!("\nOptions:");
-    println!(
-        "  --secondary, --tertiary  Show the style type on the screen. Defalult --primary"
-    );
+    println!("  --secondary, --tertiary  Show the style type on the screen. Defalult --primary");
     println!(
         "  -t, --threads <NUM>   Number of threads to be used, default is number of logical processors * 2",
     );
@@ -55,13 +48,17 @@ impl Args {
                     usage();
                     exit(0);
                 }
+
+                "--primary" => {}
+
                 "--secondary" => {
                     type_style = DisplayMode::Secondary;
                 }
+
                 "--tertiary" => {
                     type_style = DisplayMode::Tertiary;
                 }
-                // Disabled and Enable
+
                 "-t" | "--threads" => {
                     let num_str = match args_iter.next() {
                         Some(val) => val,

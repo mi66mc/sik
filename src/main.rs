@@ -2,7 +2,7 @@ use regex::Regex;
 use sik::{
     cli::args::Args,
     errors::custom_errors::AppError,
-    output::printer::{DisplayMode, StyledOutput, print_error, progress_bar},
+    output::printer::{StyledOutput, print_error, progress_bar},
     schemas::files::FileResult,
     walker::walk,
     worker::process_file,
@@ -24,14 +24,13 @@ fn main() {
 
 fn run() -> Result<(), AppError> {
     let args = Args::parse();
+    let type_style = args.type_style;
 
     let path = args.path;
     let (path_tx, path_rx) = mpsc::channel::<PathBuf>();
     let (result_tx, result_rx) = mpsc::channel::<FileResult>();
     let (count_tx, count_rx) = mpsc::channel::<()>();
     let (prog_tx, prog_rx) = mpsc::channel::<()>();
-
-    let type_style = args.type_style;
 
     let mut workers = Vec::new();
 
@@ -82,11 +81,7 @@ fn run() -> Result<(), AppError> {
     }
 
     for r in result_rx {
-        match type_style {
-            DisplayMode::Primary => println!("{}", StyledOutput::new(&r, DisplayMode::Primary)),
-            DisplayMode::Secondary => println!("{}", StyledOutput::new(&r, DisplayMode::Secondary)),
-            DisplayMode::Tertiary => println!("{}", StyledOutput::new(&r, DisplayMode::Tertiary)),
-        }
+        println!("{}", StyledOutput::new(&r, type_style));
     }
 
     Ok(())

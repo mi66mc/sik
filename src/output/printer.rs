@@ -11,6 +11,7 @@ use std::{
 
 // ----- GENERICS
 
+#[derive(Clone, Copy)]
 pub enum DisplayMode {
     Primary,
     Secondary,
@@ -66,30 +67,35 @@ impl Display for StyledOutput<'_, FileResult> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.mode {
             DisplayMode::Tertiary => {
-                write!(
-                    f,
-                    "{}\n",
-                    paint_blue(&self.value.path.to_str().ok_or(fmt::Error)?)
-                )?;
+                let file_path = self.value.path.to_str().ok_or(fmt::Error)?;
+
+                writeln!(f, "========================================")?;
+                writeln!(f, "FILE: {}", paint_blue(file_path))?;
+                writeln!(f, "========================================")?;
+                writeln!(f)?;
 
                 for r in &self.value.results {
-                    let message_line = format!("\n-> LINE {}: ", &r.line.to_string()).to_string();
-                    let line = paint_yellow(&message_line);
-                    print!("{}", center_ansi(&line, 4));
-                    print!(
-                        "\n{}",
+                    let header = format!("--> LINE {}", r.line);
+                    writeln!(f, "{}", paint_yellow(&header))?;
+
+                    writeln!(
+                        f,
+                        "    {}",
                         highlight(
                             &r.line_content,
                             &r.matches
                                 .iter()
-                                .map(|m| -> MatchRange {
-                                    m.match_range
-                                })
-                                .collect::<Vec<MatchRange>>(),
+                                .map(|m| m.match_range)
+                                .collect::<Vec<MatchRange>>()
                         )
-                    );
-                    let line_end = paint_red("\n<---------//---------->\n");
-                    print!("{}", line_end);
+                    )?;
+
+                    writeln!(
+                        f,
+                        "{}",
+                        paint_red("<------------------//------------------>")
+                    )?;
+                    writeln!(f)?;
                 }
             }
 
