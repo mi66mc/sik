@@ -2,7 +2,7 @@ use regex::Regex;
 use sik::{
     cli::args::Args,
     errors::custom_errors::AppError,
-    output::printer::{DisplayMode, StyledOutput, print_error, progress_bar},
+    output::printer::{StyledOutput, print_error, progress_bar},
     schemas::files::FileResult,
     walker::walk,
     worker::process_file,
@@ -24,6 +24,7 @@ fn main() {
 
 fn run() -> Result<(), AppError> {
     let args = Args::parse();
+    let type_style = args.type_style;
 
     let path = args.path;
     let (path_tx, path_rx) = mpsc::channel::<PathBuf>();
@@ -80,7 +81,7 @@ fn run() -> Result<(), AppError> {
     }
 
     for r in result_rx {
-        println!("{}", StyledOutput::new(&r, DisplayMode::Primary));
+        println!("{}", StyledOutput::new(&r, type_style));
     }
 
     Ok(())

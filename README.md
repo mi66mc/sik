@@ -52,6 +52,7 @@ sik [OPTIONS] <PATTERN> [PATH]
 
 ### Options
 
+-	`--primary`, `--secondary`, `--tertiary`: Arguments you provide to choose what type of style you want to be displayed.
 -   `-t, --threads <NUM>`: Sets the number of threads to use for searching. By default, it uses twice the number of available logical processors.
 -   `-h, --help`: Prints the help message and exits.
 
@@ -69,7 +70,7 @@ sik [OPTIONS] <PATTERN> [PATH]
 
 -   **Search using a specific number of threads:**
     ```bash
-    sik --threads 8 "error" "./logs"
+    sik --secondary --threads 8 "error" "./logs"
     ```
 
 ## License

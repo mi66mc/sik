@@ -11,11 +11,13 @@ use std::{
 
 // ----- GENERICS
 
+#[derive(Clone, Copy)]
 pub enum DisplayMode {
     Primary,
     Secondary,
-    Enabled,
-    Disabled,
+    Tertiary,
+    //Enabled,
+    //Disabled,
 }
 
 /// Wrapper that prints a value of type `T` using a specific [`DisplayMode`].
@@ -64,6 +66,39 @@ where
 impl Display for StyledOutput<'_, FileResult> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.mode {
+            DisplayMode::Tertiary => {
+                let file_path = self.value.path.to_str().ok_or(fmt::Error)?;
+
+                writeln!(f, "========================================")?;
+                writeln!(f, "FILE: {}", paint_blue(file_path))?;
+                writeln!(f, "========================================")?;
+                writeln!(f)?;
+
+                for r in &self.value.results {
+                    let header = format!("--> LINE {}", r.line);
+                    writeln!(f, "{}", paint_yellow(&header))?;
+
+                    writeln!(
+                        f,
+                        "    {}",
+                        highlight(
+                            &r.line_content,
+                            &r.matches
+                                .iter()
+                                .map(|m| m.match_range)
+                                .collect::<Vec<MatchRange>>()
+                        )
+                    )?;
+
+                    writeln!(
+                        f,
+                        "{}",
+                        paint_red("<------------------//------------------>")
+                    )?;
+                    writeln!(f)?;
+                }
+            }
+
             DisplayMode::Secondary => {
                 write!(
                     f,
