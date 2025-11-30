@@ -7,38 +7,40 @@ on:
 
 jobs:
   publish:
-    name: Publish crate
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Fetch main
+        run: |
+          git fetch origin +refs/heads/main:refs/remotes/origin/main --depth=1
+
       - name: Ensure tag is on main
         run: |
-          # Atualiza a main local
-          git fetch origin main --depth=1
+          echo "HEAD:        $(git rev-parse HEAD)"
+          echo "MAIN REMOTE: $(git rev-parse origin/main)"
 
-          echo "Checking if tag commit is reachable from main..."
-          git branch --contains $GITHUB_SHA | grep main || {
-            echo "❌ Tag is NOT on main! Aborting publish."
+          git merge-base --is-ancestor HEAD origin/main || {
+            echo "❌ Tag commit is NOT in main"
             exit 1
           }
 
-          echo "✅ Tag is on main. Proceeding."
+          echo "✅ Tag commit is in main"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Login to crates.io
+      - name: Login
         run: cargo login $CARGO_REGISTRY_TOKEN
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-      - name: Publish crate
+      - name: Publish
         run: cargo publish --no-verify
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
