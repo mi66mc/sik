@@ -14,8 +14,9 @@ use std::{
 pub enum DisplayMode {
     Primary,
     Secondary,
-    Enabled,
-    Disabled,
+    Tertiary,
+    //Enabled,
+    //Disabled,
 }
 
 /// Wrapper that prints a value of type `T` using a specific [`DisplayMode`].
@@ -64,6 +65,34 @@ where
 impl Display for StyledOutput<'_, FileResult> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.mode {
+            DisplayMode::Tertiary => {
+                write!(
+                    f,
+                    "{}\n",
+                    paint_blue(&self.value.path.to_str().ok_or(fmt::Error)?)
+                )?;
+
+                for r in &self.value.results {
+                    let message_line = format!("\n-> LINE {}: ", &r.line.to_string()).to_string();
+                    let line = paint_yellow(&message_line);
+                    print!("{}", center_ansi(&line, 4));
+                    print!(
+                        "\n{}",
+                        highlight(
+                            &r.line_content,
+                            &r.matches
+                                .iter()
+                                .map(|m| -> MatchRange {
+                                    m.match_range
+                                })
+                                .collect::<Vec<MatchRange>>(),
+                        )
+                    );
+                    let line_end = paint_red("\n<---------//---------->\n");
+                    print!("{}", line_end);
+                }
+            }
+
             DisplayMode::Secondary => {
                 write!(
                     f,
